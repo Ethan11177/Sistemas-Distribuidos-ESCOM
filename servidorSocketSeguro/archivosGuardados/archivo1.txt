@@ -1,0 +1,2 @@
+hola que hace esto es una prueba para poder almacenar los datos en un archivo o algo por el estilo
+pues esto es para ver que onda con el salto de linea pero haber que hace
