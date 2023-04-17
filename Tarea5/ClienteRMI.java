@@ -8,8 +8,9 @@ public class ClienteRMI {
     // donde se pueden modificar las dimensiones de los arreglos, matrices
     // resultantes para poder hacer el calculo final de suma
     static Object obj = new Object();
-    static int numN = 6000, numM = 5000;
-    static double[] matrizC1, matrizC2, matrizC3, matrizC4, matrizC5, matrizC6;
+    static int numN = 6, numM = 5;
+    static double[][] matrizC1, matrizC2, matrizC3, matrizC4, matrizC5, matrizC6;
+    static double sumaT = 0;
 
     public static double[][] InicializarMatriz(int i, int numN, int numM) {
 
@@ -23,10 +24,8 @@ public class ClienteRMI {
             for (int j2 = 0; j2 < matriz[0].length; j2++) {
                 if (i == 0) {
                     matriz[j][j2] = (3 * j) + (2 * j2);
-                    // matriz[j][j2] = i + 3 * j;
                 } else {
                     matriz[j][j2] = (2 * j) - (3 * j2);
-                    // matriz[j][j2] = 2 * i - j;
                 }
             }
         }
@@ -65,41 +64,41 @@ public class ClienteRMI {
         }
     }
 
-    public static double[] DividirMatrizA(double[][] matrizA, int zona) {
+    public static double[][] DividirMatrizA(double[][] matrizA, int zona) {
 
         // Aqui se hace el inicio del arreglo para dividir a la matriz A por secciones
         // de renglones y asi hacer la multiplicacion
-        double[] matriz = new double[matrizA[0].length];
+        double[][] matriz = new double[matrizA.length/6][matrizA[0].length];
 
         // inicio del ciclo que toma los valores en base la matrizA y se elige el
         // renglon con base a la seccion que se requiera en el contructor de la funcion
-        for (int i = 0; i < matrizA[zona].length; i++) {
-            matriz[i] = matrizA[zona][i];
+        for (int i = 0; i < matrizA.length/6; i++) {
+            for (int j = 0; j < matrizA[0].length; j++) {
+                matriz[i][j] = matrizA[i + zona][j];
+            }
         }
 
         return matriz;
     }
 
-    public static double[] MultiplicarMatricez(double[][] matrizB, double[] matriz) {
+    public static double[][] MultiplicarMatricez2(double[][] matrizB, double[][] matrizA) {
 
         // funcion que se hace cargo de la multiplicacion de un arreglo de A, junto con
         // toda la matrizB para poder asi dar como resultado uno de los arrglos
         // resultantes C
-        int suma = 0;
-        double[] matrizC = new double[matrizB[0].length];
+        double[][] matrizC = new double[matrizA.length][matrizB[0].length];
 
         // Inicio de ciclo doble para poder hacer la multiplicacion de la matriz con su
         // respectivo arregloA que conste en el momento de la ejecucion
-        for (int i = 0; i < matrizB[0].length; i++) {
-            for (int j = 0; j < matriz.length; j++) {
-
-                suma += matrizB[j][i] * matriz[j];
-
-                // System.out.println(matrizB[j][i] + " * " + matriz[j] + " = " + (matrizB[j][i]
-                // * matriz[j]));
+        if (matrizA[0].length == matrizB.length) {
+            for (int i = 0; i < matrizA.length; i++) {
+                for (int j = 0; j < matrizB[0].length; j++) {
+                    for (int j2 = 0; j2 < matrizA[0].length; j2++) {
+                        matrizC[i][j] += matrizA[i][j2] * matrizB[j2][j];
+                        //System.out.println(matrizC[i][j] + "=" + matrizA[i][j2] + "*" + matrizB[j2][j]);
+                    }
+                }
             }
-            matrizC[i] = suma;
-            suma = 0;
         }
 
         // Retorno de arreglo para uno de los componentes de la matriz C
@@ -110,32 +109,17 @@ public class ClienteRMI {
         // agragaron al final
     }
 
-    public static void ImprimirArreglo(double[] matrizC, String nombre) {
-
-        // Aqui se imprimen los componentes correspondientes para la matrizC, siendo los
-        // arreglos de C
-
-        if (matrizC.length <= 12) {
-            System.out.println("\n////////////\t" + nombre + "\t//////////////////\n");
-            for (int i = 0; i < matrizC.length; i++) {
-                System.out.print(nombre + "= " + matrizC[i] + "\t");
-            }
-        }
-    }
-
-    public static double UnirMatrizC(double[] mC1, double[] mC2, double[] mC3, double[] mC4, double[] mC5,
-            double[] mC6) {
-
-        // Aqui se hace la suma de todos los componentes en conjunto para poder sacar el
-        // checksum resultante de toda la multiplicacion
+    public static double Sumar(double[][] c1, double[][] c2){
         double suma = 0;
 
-        for (int i = 0; i < mC1.length; i++) {
-            suma += mC1[i] + mC2[i] + mC3[i] + mC3[i] + mC4[i] + mC5[i] + mC6[i];
+        for (int i = 0; i < c1.length; i++) {
+            for (int j = 0; j < c1[0].length; j++) {
+                suma += c1[i][j] + c2[i][j];
+            }
         }
 
+        //System.out.println("\n\nResultado del checksum: " + suma);
         return suma;
-
     }
 
     static class Worker extends Thread {
@@ -162,32 +146,32 @@ public class ClienteRMI {
             switch (numSer) {
                 case 0:
                     synchronized (obj) {
-                        double[] matriz = DividirMatrizA(matrizA, 0);
-                        matrizC1 = MultiplicarMatricez(matrizB, matriz);
+                        double[][] matriz = DividirMatrizA(matrizA, 0);
+                        matrizC1 = MultiplicarMatricez2(matrizB, matriz);
 
-                        ImprimirArreglo(matrizC1, "MatrizC1");
+                        ImprimirMatrices(matrizC1, numM, "MatrizC1");
                     }
                     break;
 
                 case 1:
                     synchronized (obj) {
-                        double[] matriz = DividirMatrizA(matrizA, 1);
-                        matrizC2 = MultiplicarMatricez(matrizB, matriz);
+                        double[][] matriz = DividirMatrizA(matrizA, 1);
+                        matrizC2 = MultiplicarMatricez2(matrizB, matriz);
 
-                        ImprimirArreglo(matrizC2, "MatrizC2");
+                        ImprimirMatrices(matrizC2, numM, "MatrizC2");
                     }
                     break;
 
                 case 2:
                     try {
                         synchronized (obj) {
-                            String url = "rmi://10.0.0.5/prueba";
+                            String url = "rmi://localhost/prueba";
                             InterfaceRMI r = (InterfaceRMI) (Naming.lookup(url));
 
-                            double[] matriz = r.DividirMatrizA(matrizA, 2);
+                            double[][] matriz = r.DividirMatrizA(matrizA, 2);
                             matrizC3 = r.MultiplicarMatricez(matrizB, matriz);
 
-                            ImprimirArreglo(matrizC3, "MatrizC3");
+                            ImprimirMatrices(matrizC3, numM, "MatrizC3");
                         }
                     } catch (Exception e) {
                         System.err.println(e.getMessage());
@@ -197,13 +181,13 @@ public class ClienteRMI {
                 case 3:
                     try {
                         synchronized (obj) {
-                            String url = "rmi://10.0.0.5/prueba";
+                            String url = "rmi://localhost/prueba";
                             InterfaceRMI r = (InterfaceRMI) (Naming.lookup(url));
 
-                            double[] matriz = r.DividirMatrizA(matrizA, 3);
+                            double[][] matriz = r.DividirMatrizA(matrizA, 3);
                             matrizC4 = r.MultiplicarMatricez(matrizB, matriz);
 
-                            ImprimirArreglo(matrizC4, "MatrizC4");
+                            ImprimirMatrices(matrizC4, numM, "MatrizC4");
                         }
                     } catch (Exception e) {
                         System.err.println(e.getMessage());
@@ -213,13 +197,14 @@ public class ClienteRMI {
                 case 4:
                     try {
                         synchronized (obj) {
-                            String url = "rmi://10.0.0.6/prueba";
+                            String url = "rmi://localhost/prueba";
                             InterfaceRMI r = (InterfaceRMI) (Naming.lookup(url));
 
-                            double[] matriz = r.DividirMatrizA(matrizA, 5);
-                            matrizC6 = r.MultiplicarMatricez(matrizB, matriz);
+                            double[][] matriz = r.DividirMatrizA(matrizA, 4);
+                            matrizC5 = r.MultiplicarMatricez(matrizB, matriz);
 
-                            ImprimirArreglo(matrizC6, "MatrizC6");
+                            ImprimirMatrices(matrizC5, numM, "MatrizC5");
+
                         }
                     } catch (Exception e) {
                         System.err.println(e.getMessage());
@@ -229,13 +214,13 @@ public class ClienteRMI {
                 case 5:
                     try {
                         synchronized (obj) {
-                            String url = "rmi://10.0.0.6/prueba";
+                            String url = "rmi://localhost/prueba";
                             InterfaceRMI r = (InterfaceRMI) (Naming.lookup(url));
 
-                            double[] matriz = r.DividirMatrizA(matrizA, 4);
-                            matrizC5 = r.MultiplicarMatricez(matrizB, matriz);
+                            double[][] matriz = r.DividirMatrizA(matrizA, 5);
+                            matrizC6 = r.MultiplicarMatricez(matrizB, matriz);
 
-                            ImprimirArreglo(matrizC5, "MatrizC5");
+                            ImprimirMatrices(matrizC6, numM, "MatrizC6");
                         }
                     } catch (Exception e) {
                         System.err.println(e.getMessage());
@@ -243,10 +228,21 @@ public class ClienteRMI {
                     break;
 
                 case 117:
+                    try {
+                        String url = "rmi://localhost/prueba";
+                        InterfaceRMI r = (InterfaceRMI) (Naming.lookup(url));
 
-                    System.out.println("\n\nResultado del checksum: "
-                            + UnirMatrizC(matrizC1, matrizC2, matrizC3, matrizC4, matrizC5, matrizC6));
+                        String url2 = "rmi://localhost/prueba";
+                        InterfaceRMI r2 = (InterfaceRMI) (Naming.lookup(url2));
 
+                        sumaT += r.Sumar(matrizC1, matrizC2);
+                        sumaT += r.Sumar(matrizC3, matrizC4);
+                        sumaT += r2.Sumar(matrizC5, matrizC6);
+
+                    System.out.println("suma total es: " + sumaT);
+                    } catch (Exception e) {
+                        // TODO: handle exception
+                    }
                     break;
 
                 default:

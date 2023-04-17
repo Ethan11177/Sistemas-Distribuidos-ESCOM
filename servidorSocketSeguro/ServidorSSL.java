@@ -1,4 +1,4 @@
-//DEV: VAQUERA AGUILERA ETHAN EMILIANO
+FF//DEV: VAQUERA AGUILERA ETHAN EMILIANO
 //DESARROLLO DE SISTEMAS DISTRIDUIDOS
 //PROFE: PINEDA GUERRERO CARLOS
 //GRUPO: 3CV14
@@ -81,18 +81,22 @@ public class ServidorSSL {
 
     public static void main(String[] args) {
 
-        System.setProperty("javax.net.ssl.keyStore", "keystore_servidor.jks");                            //seccion de seteo de la propiedades para poder hacer el uso de sockets seguros en el sistema 
+        System.setProperty("javax.net.ssl.keyStore", "keystore_servidor.jks");  
         System.setProperty("javax.net.ssl.keyStorePassword", "1234567");
+        //seccion de seteo de la propiedades para poder hacer el uso de sockets seguros en el sistema 
 
-        SSLServerSocketFactory socket_factory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();       //linea que se encarga de poder hacer el inicio del socket seguro para poder despues hacer la conexion
+        SSLServerSocketFactory socket_factory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+        //linea que se encarga de poder hacer el inicio del socket seguro para poder despues hacer la conexion
 
-        try (ServerSocket socket_servidor = socket_factory.createServerSocket(50000)) { //en esta parte de aqui es donde ahora si se inicia el servidor y ahora puede recibir conexiones de manera repetitiva de cualquier cliente
+        try (ServerSocket socket_servidor = socket_factory.createServerSocket(50000)) { 
+        //en esta parte de aqui es donde ahora si se inicia el servidor y ahora puede recibir conexiones de manera repetitiva de cualquier cliente
 
-            for(;;){                                            //modo de hacer que el servidor este siempre encendido para recibir conexiones
+            for(;;){           
                 Socket conexion = socket_servidor.accept();
-                Worker w1 = new Worker(conexion);               //inicio del hilo de trabajo para poder hacer un treding 
-                w1.start();                                     //entrada al thread para poder hacer uso de las operaciones del servidor
+                Worker w1 = new Worker(conexion);          
+                w1.start();                                 
             }
+            //iniciando al servidor en modo que recibira peticiones del clienteD
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
